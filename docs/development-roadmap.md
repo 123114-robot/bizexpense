@@ -13,5 +13,4 @@
 | 8 Hardening | Security, migrations, observability | Production readiness review passes | E2E/security/load |
 | 9 Deploy/docs | CI/CD and operating guide | Repeatable deployment and support handoff | Deployment smoke test |
 
-This run completes 0–3 and uses a mock for 4–5. The dashboard includes only the four requested aggregates.
-
+This run completes 0–4 and uses the existing mock review workflow for Phase 5. Tesseract mode currently supports PNG/JPEG invoices; PDF rendering is deferred. The dashboard includes only the four requested aggregates.

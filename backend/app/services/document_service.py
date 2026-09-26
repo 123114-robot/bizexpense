@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.models.document import UploadedDocument
 from app.schemas.document import OCRResult
-from app.services.ocr_service import OCRProvider
+from app.services.ocr_service import OCRProcessingError, OCRProvider
 
 ALLOWED_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 MAX_BYTES = 10 * 1024 * 1024
@@ -41,5 +41,7 @@ class DocumentService:
         document = self.db.get(UploadedDocument, document_id)
         if not document:
             raise HTTPException(404, "Document not found")
-        return provider.extract(document.file_path)
-
+        try:
+            return provider.extract(document.file_path)
+        except OCRProcessingError as exc:
+            raise HTTPException(422, str(exc)) from exc

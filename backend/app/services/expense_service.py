@@ -46,7 +46,7 @@ class ExpenseService:
 
     def create(self, payload: ExpenseCreate) -> ExpenseRead:
         user, supplier, category = self._references(payload)
-        data = payload.model_dump(exclude={"supplier_name", "supplier_abn"})
+        data = payload.model_dump(exclude={"supplier_name", "supplier_abn", "category_id"})
         expense = Expense(**data, user_id=user.id, supplier_id=supplier.id, category_id=category.id)
         return self.serialize(self.repo.save(expense))
 
@@ -68,4 +68,3 @@ class ExpenseService:
         self.repo.delete(expense)
 
     # TODO: add non-blocking duplicate warning based on supplier + invoice_number + total_amount.
-

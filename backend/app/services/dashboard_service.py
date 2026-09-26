@@ -23,9 +23,8 @@ class DashboardService:
             )
         )
         return {
-            "total_expenses": Decimal(total).quantize(Decimal("0.01")),
-            "expenses_this_month": Decimal(month_total or 0).quantize(Decimal("0.01")),
-            "gst_paid": Decimal(gst).quantize(Decimal("0.01")),
+            "total_expenses": f"{Decimal(total):.2f}",
+            "expenses_this_month": f"{Decimal(month_total or 0):.2f}",
+            "gst_paid": f"{Decimal(gst):.2f}",
             "expense_count": count,
         }
-

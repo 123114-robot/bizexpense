@@ -5,7 +5,7 @@ BizExpense is a portfolio-quality MVP for Australian SMEs to record expenses, up
 ## What works
 
 - Expense create, list/search, view, edit and delete
-- PDF/JPEG/PNG upload (10 MB limit) and replaceable `OCRProvider` abstraction
+- PDF/JPEG/PNG upload (10 MB limit) and replaceable Mock/Tesseract `OCRProvider`
 - Mandatory user confirmation on the OCR review screen
 - Database-backed dashboard totals, monthly spend, GST and count
 - Seeded demo admin and ten expense categories
@@ -34,6 +34,8 @@ npm run dev
 
 Open `http://localhost:5173`. The API reads `DATABASE_URL`; the `.env.example` value is its default. Tables and reference data are created on API startup for this MVP.
 
+Mock OCR is the default. To enable real OCR for PNG/JPEG invoices, install Tesseract and set `OCR_PROVIDER=tesseract`. Windows standard installs are detected automatically; otherwise set `TESSERACT_CMD` to the executable path. PDF rendering and field-level confidence are intentionally deferred.
+
 ## Verification
 
 ```powershell
@@ -42,4 +44,3 @@ cd ../frontend; npm test; npm run build; npm run lint
 ```
 
 See [docs/project-overview.md](docs/project-overview.md), [PROJECT_TASKS.md](PROJECT_TASKS.md), and the remaining `docs/` files for design decisions and future phases.
-
