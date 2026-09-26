@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: bizexpense
+      POSTGRES_USER: bizexpense
+      POSTGRES_PASSWORD: bizexpense
+    ports: ["5432:5432"]
+    volumes: ["bizexpense_data:/var/lib/postgresql/data"]
+volumes:
+  bizexpense_data:
+

@@ -1,0 +1,5 @@
+import { render,screen } from '@testing-library/react';import userEvent from '@testing-library/user-event';import { MemoryRouter } from 'react-router-dom';import { vi } from 'vitest';import { ReviewExpensePage } from '../pages/ReviewExpensePage'
+const draft={supplier_name:'Acme Office Supplies',abn:null,invoice_number:'D-1',invoice_date:'2026-09-01',due_date:null,subtotal:'100',gst:'10',total:'110',currency:'AUD',confidence:.92,confirmed:false,document_id:1}
+beforeEach(()=>{sessionStorage.setItem('ocrDraft',JSON.stringify(draft));vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>[{id:1,name:'Office Supplies'}]}))})
+afterEach(()=>{sessionStorage.clear();vi.unstubAllGlobals()})
+test('review page displays extracted fields and requires confirmation',async()=>{render(<MemoryRouter><ReviewExpensePage/></MemoryRouter>);expect(screen.getByDisplayValue('Acme Office Supplies')).toBeInTheDocument();expect(screen.getByText('Review extracted information before saving.')).toBeInTheDocument();await userEvent.click(screen.getByRole('button',{name:'Confirm and save'}));expect(await screen.findByRole('alert')).toHaveTextContent('Confirm')})

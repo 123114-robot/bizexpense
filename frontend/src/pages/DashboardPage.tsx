@@ -1,0 +1,4 @@
+import { useEffect, useState } from 'react'
+import { expenseService } from '../services/expenseService'
+import type { Dashboard } from '../types/expense'
+export function DashboardPage() { const [data,setData]=useState<Dashboard>(); useEffect(()=>{expenseService.dashboard().then(setData)},[]); const cards=[['Total expenses',data?.total_expenses],['Expenses this month',data?.expenses_this_month],['GST paid',data?.gst_paid],['Number of expenses',data?.expense_count]]; return <><h1 className="mb-1 text-3xl font-bold">Dashboard</h1><p className="mb-6 text-slate-600">A clear view of your business spending.</p><div className="grid gap-4 md:grid-cols-4">{cards.map(([label,value])=><div className="card" key={label}><p className="text-sm text-slate-500">{label}</p><p className="mt-2 text-2xl font-bold">{value ?? '—'}</p></div>)}</div></> }

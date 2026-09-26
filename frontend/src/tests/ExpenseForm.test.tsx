@@ -1,0 +1,5 @@
+import { render,screen } from '@testing-library/react';import userEvent from '@testing-library/user-event';import { vi } from 'vitest';import { ExpenseForm } from '../components/forms/ExpenseForm'
+beforeEach(()=>{vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>[{id:1,name:'Office Supplies'}]}))})
+afterEach(()=>vi.unstubAllGlobals())
+test('expense form renders',()=>{render(<ExpenseForm onSubmit={vi.fn()}/>);expect(screen.getByRole('button',{name:'Save expense'})).toBeInTheDocument()})
+test('validation error displays when GST exceeds total',async()=>{render(<ExpenseForm initial={{supplier_name:'Acme',subtotal:'1',gst_amount:'12',total_amount:'10',description:'Paper'}} onSubmit={vi.fn()}/>);await userEvent.click(screen.getByRole('button',{name:'Save expense'}));expect(await screen.findByRole('alert')).toHaveTextContent('GST cannot exceed total amount')})

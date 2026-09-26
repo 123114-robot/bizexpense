@@ -1,0 +1,45 @@
+# BizExpense
+
+BizExpense is a portfolio-quality MVP for Australian SMEs to record expenses, upload invoices, review mock OCR results and see live spending totals. It deliberately keeps authentication, production OCR and accounting integrations out of scope.
+
+## What works
+
+- Expense create, list/search, view, edit and delete
+- PDF/JPEG/PNG upload (10 MB limit) and replaceable `OCRProvider` abstraction
+- Mandatory user confirmation on the OCR review screen
+- Database-backed dashboard totals, monthly spend, GST and count
+- Seeded demo admin and ten expense categories
+- FastAPI OpenAPI docs at `http://localhost:8000/docs`
+
+## Local setup
+
+Prerequisites: Python 3.11+, Node 20+, and Docker (for PostgreSQL).
+
+```powershell
+Copy-Item .env.example .env
+docker compose up -d db
+python -m venv backend/.venv
+backend/.venv/Scripts/Activate.ps1
+pip install -r backend/requirements-dev.txt
+uvicorn app.main:app --reload --app-dir backend
+```
+
+In a second terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. The API reads `DATABASE_URL`; the `.env.example` value is its default. Tables and reference data are created on API startup for this MVP.
+
+## Verification
+
+```powershell
+cd backend; python -m pytest -q; ruff check .
+cd ../frontend; npm test; npm run build; npm run lint
+```
+
+See [docs/project-overview.md](docs/project-overview.md), [PROJECT_TASKS.md](PROJECT_TASKS.md), and the remaining `docs/` files for design decisions and future phases.
+
