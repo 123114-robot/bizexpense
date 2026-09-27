@@ -14,10 +14,12 @@ class DashboardService:
     def summary(self) -> dict:
         total, gst, count = self.db.execute(
             select(func.coalesce(func.sum(Expense.total_amount), 0), func.coalesce(func.sum(Expense.gst_amount), 0), func.count(Expense.id))
+            .where(Expense.ocr_confirmed.is_(True))
         ).one()
         today = date.today()
         month_total = self.db.scalar(
             select(func.coalesce(func.sum(Expense.total_amount), 0)).where(
+                Expense.ocr_confirmed.is_(True),
                 extract("year", Expense.invoice_date) == today.year,
                 extract("month", Expense.invoice_date) == today.month,
             )
