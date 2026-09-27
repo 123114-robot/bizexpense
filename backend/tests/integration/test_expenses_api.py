@@ -29,20 +29,27 @@ def test_expense_crud(client):
     assert client.get(f"/api/expenses/{expense_id}").status_code == 404
 
 
-def test_dashboard_uses_database_values(client):
+def test_dashboard_excludes_unconfirmed_ocr_drafts(client):
     client.post("/api/expenses", json=expense_payload())
     client.post(
-        "/api/expenses", json=expense_payload(invoice_number="INV-101", total_amount="55", subtotal="50", gst_amount="5")
+        "/api/expenses",
+        json=expense_payload(
+            invoice_number="DRAFT-101",
+            total_amount="220",
+            subtotal="200",
+            gst_amount="20",
+            ocr_confirmed=False,
+        ),
     )
     summary = client.get("/api/dashboard/summary")
     assert summary.status_code == 200
-    assert summary.json()["total_expenses"] == "165.00"
-    assert summary.json()["gst_paid"] == "15.00"
-    assert summary.json()["expense_count"] == 2
+    assert summary.json()["total_expenses"] == "110.00"
+    assert summary.json()["expenses_this_month"] == "110.00"
+    assert summary.json()["gst_paid"] == "10.00"
+    assert summary.json()["expense_count"] == 1
 
 
 def test_unconfirmed_ocr_expense_is_preserved_as_unconfirmed(client):
     created = client.post("/api/expenses", json=expense_payload(ocr_confirmed=False))
     assert created.status_code == 201
     assert created.json()["ocr_confirmed"] is False
-

@@ -34,7 +34,7 @@ npm run dev
 
 Open `http://localhost:5173`. The API reads `DATABASE_URL`; the `.env.example` value is its default. Tables and reference data are created on API startup for this MVP.
 
-Mock OCR is the default. To enable real OCR for PNG/JPEG invoices, install Tesseract and set `OCR_PROVIDER=tesseract`. Windows standard installs are detected automatically; otherwise set `TESSERACT_CMD` to the executable path. PDF rendering and field-level confidence are intentionally deferred.
+Mock OCR is the default. The Tesseract integration is a prototype with basic PNG/JPEG invoice-field parsing, not production-grade OCR. Enable it with `OCR_PROVIDER=tesseract`; Windows standard installs are detected automatically, otherwise set `TESSERACT_CMD`. Production accuracy, broad layout compatibility, PDF OCR, field-level confidence, cloud OCR and validation against a large real-invoice dataset are intentionally deferred.
 
 ## Verification
 
