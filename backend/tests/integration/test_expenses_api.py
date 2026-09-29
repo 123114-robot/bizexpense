@@ -1,3 +1,6 @@
+from datetime import date
+
+
 def expense_payload(**changes):
     payload = {
         "supplier_name": "Acme Office Supplies",
@@ -30,7 +33,20 @@ def test_expense_crud(client):
 
 
 def test_dashboard_excludes_unconfirmed_ocr_drafts(client):
-    client.post("/api/expenses", json=expense_payload())
+    current_date = date.today().isoformat()
+    client.post("/api/expenses", json=expense_payload(invoice_date=current_date))
+    client.post(
+        "/api/expenses",
+        json=expense_payload(
+            supplier_name="Fuel Station",
+            category_id=2,
+            invoice_number="INV-101",
+            subtotal="50",
+            gst_amount="5",
+            total_amount="55",
+            invoice_date=current_date,
+        ),
+    )
     client.post(
         "/api/expenses",
         json=expense_payload(
@@ -39,14 +55,24 @@ def test_dashboard_excludes_unconfirmed_ocr_drafts(client):
             subtotal="200",
             gst_amount="20",
             ocr_confirmed=False,
+            invoice_date=current_date,
         ),
     )
     summary = client.get("/api/dashboard/summary")
     assert summary.status_code == 200
-    assert summary.json()["total_expenses"] == "110.00"
-    assert summary.json()["expenses_this_month"] == "110.00"
-    assert summary.json()["gst_paid"] == "10.00"
-    assert summary.json()["expense_count"] == 1
+    assert summary.json()["total_expenses"] == "165.00"
+    assert summary.json()["expenses_this_month"] == "165.00"
+    assert summary.json()["gst_paid"] == "15.00"
+    assert summary.json()["expense_count"] == 2
+    assert summary.json()["category_breakdown"] == [
+        {"category": "Office Supplies", "total": "110.00", "expense_count": 1},
+        {"category": "Fuel", "total": "55.00", "expense_count": 1},
+    ]
+    assert len(summary.json()["monthly_trend"]) == 6
+    assert summary.json()["monthly_trend"][-1] == {
+        "month": date.today().strftime("%Y-%m"),
+        "total": "165.00",
+    }
 
 
 def test_unconfirmed_ocr_expense_is_preserved_as_unconfirmed(client):

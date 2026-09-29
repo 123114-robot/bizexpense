@@ -12,6 +12,7 @@
 - [ ] Phase 4D: parser hardening for varied layouts and OCR errors
 - [x] Phase 5 (mock workflow): editable review and explicit confirmation
 - [x] Database-backed dashboard summary
+- [x] Phase 6: confirmed-expense category breakdown and six-month trend
 - [x] Backend unit/integration tests and frontend critical-flow tests
 
 ## Intentionally deferred

@@ -6,5 +6,12 @@ export type Expense = {
 }
 export type ExpenseInput = Omit<Expense, 'id' | 'category_name'>
 export type Category = { id: number; name: string }
-export type Dashboard = { total_expenses: string; expenses_this_month: string; gst_paid: string; expense_count: number }
+export type Dashboard = {
+  total_expenses: string
+  expenses_this_month: string
+  gst_paid: string
+  expense_count: number
+  category_breakdown: { category: string; total: string; expense_count: number }[]
+  monthly_trend: { month: string; total: string }[]
+}
 export type OCRResult = { supplier_name: string; abn: string | null; invoice_number: string | null; invoice_date: string; due_date: string | null; subtotal: string; gst: string; total: string; currency: string; confidence: number; confirmed: boolean }
