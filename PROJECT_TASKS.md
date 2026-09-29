@@ -13,6 +13,7 @@
 - [x] Phase 5 (mock workflow): editable review and explicit confirmation
 - [x] Database-backed dashboard summary
 - [x] Phase 6: confirmed-expense category breakdown and six-month trend
+- [x] Phase 7: supplier/description, category, date and status filters with matching CSV export
 - [x] Backend unit/integration tests and frontend critical-flow tests
 
 ## Intentionally deferred
@@ -21,6 +22,6 @@
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Authentication, roles and tenant isolation
 - [ ] Duplicate warning using supplier + invoice number + total
-- [ ] Advanced filters, CSV/accounting export and analytics
+- [ ] Accounting-system export and advanced analytics
 - [ ] Object storage, malware scanning and document retention policy
 - [ ] Accessibility and browser E2E hardening

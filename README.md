@@ -4,7 +4,7 @@ BizExpense is a portfolio-quality MVP for Australian SMEs to record expenses, up
 
 ## What works
 
-- Expense create, list/search, view, edit and delete
+- Expense create, filtered list/search, CSV export, view, edit and delete
 - PDF/JPEG/PNG upload (10 MB limit) and replaceable Mock/Tesseract `OCRProvider`
 - Mandatory user confirmation on the OCR review screen
 - Database-backed dashboard totals, monthly spend, GST, count, category breakdown and six-month trend

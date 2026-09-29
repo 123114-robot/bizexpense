@@ -13,4 +13,4 @@
 | 8 Hardening | Security, migrations, observability | Production readiness review passes | E2E/security/load |
 | 9 Deploy/docs | CI/CD and operating guide | Repeatable deployment and support handoff | Deployment smoke test |
 
-This run completes the MVP workflow through Phase 6. Tesseract mode currently supports PNG/JPEG invoices; PDF rendering is deferred. Dashboard analytics include confirmed-expense KPIs, category totals and a six-month spending trend.
+This run completes the MVP workflow through Phase 7. Tesseract mode currently supports PNG/JPEG invoices; PDF rendering is deferred. Expense list filters cover supplier/description, category, date range and confirmation status, and CSV export reuses the same filters.

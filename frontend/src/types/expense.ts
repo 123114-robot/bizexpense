@@ -6,6 +6,13 @@ export type Expense = {
 }
 export type ExpenseInput = Omit<Expense, 'id' | 'category_name'>
 export type Category = { id: number; name: string }
+export type ExpenseFilters = {
+  search?: string
+  category_id?: string
+  date_from?: string
+  date_to?: string
+  ocr_confirmed?: string
+}
 export type Dashboard = {
   total_expenses: string
   expenses_this_month: string
