@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.document import UploadedDocument
@@ -17,9 +18,10 @@ MAX_BYTES = 10 * 1024 * 1024
 
 
 class DocumentService:
-    def __init__(self, db: Session, upload_dir: Path):
+    def __init__(self, db: Session, upload_dir: Path, user_id: int):
         self.db = db
         self.upload_dir = upload_dir
+        self.user_id = user_id
 
     async def upload(self, file: UploadFile) -> UploadedDocument:
         if file.content_type not in ALLOWED_FILES:
@@ -40,6 +42,7 @@ class DocumentService:
         path = self.upload_dir / stored_name
         path.write_bytes(content)
         document = UploadedDocument(
+            user_id=self.user_id,
             filename=stored_name, original_filename=file.filename or "document",
             file_path=str(path), mime_type=file.content_type,
         )
@@ -49,7 +52,7 @@ class DocumentService:
         return document
 
     def extract(self, document_id: int, provider: OCRProvider) -> OCRResult:
-        document = self.db.get(UploadedDocument, document_id)
+        document = self.db.scalar(select(UploadedDocument).where(UploadedDocument.id == document_id, UploadedDocument.user_id == self.user_id))
         if not document:
             raise HTTPException(404, "Document not found")
         try:

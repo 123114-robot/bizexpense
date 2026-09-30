@@ -13,8 +13,9 @@
 | 8A Foundation | Environment configuration, migrations, request tracing and response hardening | Migration round-trip and security-header tests pass | Integration/migration tests |
 | 8B Perimeter | Trusted hosts and upload content verification | Spoofed hosts/files are rejected | Security integration/unit tests |
 | 8C1 Authentication | Registration, secure password storage and JWT identity | Register/login/me tests and migration checks pass | Auth integration tests |
-| 8C2 Authorization | Roles and tenant isolation across business APIs and clients | Cross-tenant access is denied | API/UI authorization tests |
+| 8C2 Authorization | JWT enforcement and per-user tenant isolation across business APIs | Cross-tenant access is denied | API authorization tests |
+| 8C3 Web auth | Registration/login UI and authenticated shared API client | Web flows send JWT and handle sign-out | UI/auth tests |
 | 8D Security | Rate limits and deeper security review | Production readiness review passes | E2E/security/load |
 | 9 Deploy/docs | CI/CD and operating guide | Repeatable deployment and support handoff | Deployment smoke test |
 
-This run completes the MVP workflow through Phase 8C1. Registration and JWT identity are available, but existing business endpoints do not enforce authentication yet. Authorization, tenant isolation and client login flows remain Phase 8C2 work; rate limits remain Phase 8D.
+This run completes the backend workflow through Phase 8C2. Business APIs require JWT and scope expenses, suppliers, dashboard data, documents and OCR to the authenticated user. Web login wiring remains Phase 8C3; rate limits remain Phase 8D.

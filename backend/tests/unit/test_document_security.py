@@ -17,7 +17,7 @@ def upload(filename: str, content_type: str, content: bytes) -> UploadFile:
 
 
 def test_upload_rejects_content_that_does_not_match_declared_type(db, tmp_path):
-    service = DocumentService(db, tmp_path)
+    service = DocumentService(db, tmp_path, 1)
 
     with pytest.raises(HTTPException, match="content does not match") as error:
         asyncio.run(service.upload(upload("receipt.png", "image/png", b"not-a-png")))
@@ -27,7 +27,7 @@ def test_upload_rejects_content_that_does_not_match_declared_type(db, tmp_path):
 
 
 def test_upload_rejects_mismatched_filename_extension(db, tmp_path):
-    service = DocumentService(db, tmp_path)
+    service = DocumentService(db, tmp_path, 1)
 
     with pytest.raises(HTTPException, match="extension does not match") as error:
         asyncio.run(
@@ -40,7 +40,7 @@ def test_upload_rejects_mismatched_filename_extension(db, tmp_path):
 
 
 def test_upload_rejects_empty_files(db, tmp_path):
-    service = DocumentService(db, tmp_path)
+    service = DocumentService(db, tmp_path, 1)
 
     with pytest.raises(HTTPException, match="empty") as error:
         asyncio.run(service.upload(upload("receipt.pdf", "application/pdf", b"")))
@@ -49,7 +49,7 @@ def test_upload_rejects_empty_files(db, tmp_path):
 
 
 def test_upload_accepts_matching_png_content_and_extension(db, tmp_path):
-    service = DocumentService(db, tmp_path)
+    service = DocumentService(db, tmp_path, 1)
 
     document = asyncio.run(
         service.upload(
