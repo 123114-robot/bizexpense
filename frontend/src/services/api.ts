@@ -11,3 +11,10 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   if (response.status === 204) return undefined as T
   return response.json()
 }
+
+export async function download(path: string): Promise<Blob> {
+  const token = localStorage.getItem('bizexpense_token')
+  const response = await fetch(`/api${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+  if (!response.ok) throw new Error('Export failed')
+  return response.blob()
+}
