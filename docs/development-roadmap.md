@@ -18,4 +18,4 @@
 | 8D Security | Rate limits and deeper security review | Production readiness review passes | E2E/security/load |
 | 9 Deploy/docs | CI/CD and operating guide | Repeatable deployment and support handoff | Deployment smoke test |
 
-This run completes the backend workflow through Phase 8C2. Business APIs require JWT and scope expenses, suppliers, dashboard data, documents and OCR to the authenticated user. Web login wiring remains Phase 8C3; rate limits remain Phase 8D.
+This run completes the prototype workflow through Phase 8C3. Business APIs require JWT and scope data to the authenticated user; the Web app provides registration/login, stores the token and attaches it to shared API calls. Rate limits and production hardening remain Phase 8D.

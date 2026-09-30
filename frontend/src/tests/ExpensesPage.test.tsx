@@ -32,6 +32,6 @@ test('expense filters drive both the list and CSV export', async () => {
   )
   await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
     '/api/expenses?category_id=2&date_from=2026-09-01&date_to=2026-09-30&ocr_confirmed=true',
-    undefined,
+    { headers: expect.any(Headers) },
   ))
 })
