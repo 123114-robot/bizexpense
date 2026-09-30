@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,8 +25,20 @@ class ExpenseService:
             "category_name": expense.category.name,
         })
 
-    def list(self, search: str | None = None) -> list[ExpenseRead]:
-        return [self.serialize(item) for item in self.repo.list(search)]
+    def list(
+        self,
+        search: str | None = None,
+        category_id: int | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        ocr_confirmed: bool | None = None,
+    ) -> list[ExpenseRead]:
+        return [
+            self.serialize(item)
+            for item in self.repo.list(
+                search, category_id, date_from, date_to, ocr_confirmed
+            )
+        ]
 
     def get(self, expense_id: int) -> ExpenseRead:
         expense = self.repo.get(expense_id)

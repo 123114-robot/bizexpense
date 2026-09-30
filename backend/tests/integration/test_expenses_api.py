@@ -1,4 +1,6 @@
 from datetime import date
+import csv
+from io import StringIO
 
 
 def expense_payload(**changes):
@@ -79,3 +81,55 @@ def test_unconfirmed_ocr_expense_is_preserved_as_unconfirmed(client):
     created = client.post("/api/expenses", json=expense_payload(ocr_confirmed=False))
     assert created.status_code == 201
     assert created.json()["ocr_confirmed"] is False
+
+
+def test_expense_filters_and_csv_export_use_the_same_results(client):
+    client.post(
+        "/api/expenses",
+        json=expense_payload(
+            supplier_name="Fuel Station",
+            category_id=2,
+            invoice_number="FUEL-1",
+            invoice_date="2026-09-15",
+            description="=HYPERLINK(\"https://example.invalid\", \"Van fuel\")",
+        ),
+    )
+    client.post(
+        "/api/expenses",
+        json=expense_payload(
+            invoice_number="OFFICE-1",
+            invoice_date="2026-09-16",
+        ),
+    )
+    client.post(
+        "/api/expenses",
+        json=expense_payload(
+            supplier_name="Fuel Station",
+            category_id=2,
+            invoice_number="FUEL-DRAFT",
+            invoice_date="2026-09-17",
+            description="Draft van fuel",
+            ocr_confirmed=False,
+        ),
+    )
+
+    query = (
+        "search=fuel&category_id=2&date_from=2026-09-01&date_to=2026-09-30"
+        "&ocr_confirmed=true"
+    )
+    filtered = client.get(f"/api/expenses?{query}")
+    assert filtered.status_code == 200
+    assert [row["invoice_number"] for row in filtered.json()] == ["FUEL-1"]
+
+    exported = client.get(f"/api/expenses/export.csv?{query}")
+    assert exported.status_code == 200
+    assert exported.headers["content-type"].startswith("text/csv")
+    assert "attachment; filename=bizexpense-expenses.csv" == exported.headers[
+        "content-disposition"
+    ]
+    rows = list(csv.DictReader(StringIO(exported.text.lstrip("\ufeff"))))
+    assert len(rows) == 1
+    assert rows[0]["Invoice number"] == "FUEL-1"
+    assert rows[0]["Supplier"] == "Fuel Station"
+    assert rows[0]["Status"] == "Confirmed"
+    assert rows[0]["Description"].startswith("'=HYPERLINK")
