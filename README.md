@@ -53,4 +53,6 @@ cd backend; python -m pytest -q; ruff check .
 cd ../frontend; npm test; npm run build; npm run lint
 ```
 
+The backend smoke suite verifies the primary demo path: registration, JWT authentication, expense creation, dashboard reconciliation, CSV export, document upload and OCR extraction.
+
 See [docs/project-overview.md](docs/project-overview.md), [PROJECT_TASKS.md](PROJECT_TASKS.md), and the remaining `docs/` files for design decisions and future phases.
