@@ -15,12 +15,13 @@
 - [x] Phase 6: confirmed-expense category breakdown and six-month trend
 - [x] Phase 7: supplier/description, category, date and status filters with matching CSV export
 - [x] Phase 8A: migration baseline, environment configuration, request IDs and security headers
+- [x] Phase 8B: trusted-host enforcement and upload content/extension verification
 - [x] Backend unit/integration tests and frontend critical-flow tests
 
 ## Intentionally deferred
 
 - [ ] Production deployment configuration
-- [ ] Phase 8B: authentication, roles, tenant isolation, rate limits and deeper security testing
+- [ ] Phase 8C: authentication, roles, tenant isolation, rate limits and deeper security testing
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Duplicate warning using supplier + invoice number + total
 - [ ] Accounting-system export and advanced analytics

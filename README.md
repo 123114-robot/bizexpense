@@ -11,6 +11,7 @@ BizExpense is a portfolio-quality MVP for Australian SMEs to record expenses, up
 - Seeded demo admin and ten expense categories
 - FastAPI OpenAPI docs at `http://localhost:8000/docs`
 - Alembic migration baseline, environment-based CORS and request/security headers
+- Trusted-host enforcement and content-signature validation for PDF/JPEG/PNG uploads
 
 ## Local setup
 
@@ -36,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. The API reads `DATABASE_URL` and `CORS_ORIGINS`. Development mode still creates missing tables for convenience; production mode requires `python -m alembic upgrade head` before startup. Every API response includes a request ID and baseline browser security headers.
+Open `http://localhost:5173`. The API reads `DATABASE_URL`, `CORS_ORIGINS` and `ALLOWED_HOSTS`. Development mode still creates missing tables for convenience; production mode requires `python -m alembic upgrade head` before startup. Every API response includes a request ID and baseline browser security headers. Uploads must have a permitted MIME type, matching extension and matching file signature.
 
 Mock OCR is the default. The Tesseract integration is a prototype with basic PNG/JPEG invoice-field parsing, not production-grade OCR. Enable it with `OCR_PROVIDER=tesseract`; Windows standard installs are detected automatically, otherwise set `TESSERACT_CMD`. Production accuracy, broad layout compatibility, PDF OCR, field-level confidence, cloud OCR and validation against a large real-invoice dataset are intentionally deferred.
 

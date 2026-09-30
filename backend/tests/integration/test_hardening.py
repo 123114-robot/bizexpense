@@ -13,3 +13,9 @@ def test_request_id_is_generated_when_missing(client):
 
     assert response.headers["x-request-id"]
     assert len(response.headers["x-request-id"]) == 32
+
+
+def test_untrusted_host_is_rejected(client):
+    response = client.get("/api/health", headers={"Host": "attacker.example"})
+
+    assert response.status_code == 400

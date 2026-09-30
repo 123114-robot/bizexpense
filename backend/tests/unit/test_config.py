@@ -8,3 +8,9 @@ def test_cors_origins_are_trimmed_and_empty_values_are_removed():
         "https://app.example",
         "https://admin.example",
     ]
+
+
+def test_allowed_hosts_are_trimmed():
+    settings = Settings(allowed_hosts="api.example, localhost")
+
+    assert settings.trusted_hosts == ["api.example", "localhost"]

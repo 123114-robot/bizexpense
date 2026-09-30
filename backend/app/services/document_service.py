@@ -8,7 +8,11 @@ from app.models.document import UploadedDocument
 from app.schemas.document import OCRResult
 from app.services.ocr_service import OCRProcessingError, OCRProvider
 
-ALLOWED_TYPES = {"application/pdf", "image/jpeg", "image/png"}
+ALLOWED_FILES = {
+    "application/pdf": ({".pdf"}, (b"%PDF-",)),
+    "image/jpeg": ({".jpg", ".jpeg"}, (b"\xff\xd8\xff",)),
+    "image/png": ({".png"}, (b"\x89PNG\r\n\x1a\n",)),
+}
 MAX_BYTES = 10 * 1024 * 1024
 
 
@@ -18,12 +22,19 @@ class DocumentService:
         self.upload_dir = upload_dir
 
     async def upload(self, file: UploadFile) -> UploadedDocument:
-        if file.content_type not in ALLOWED_TYPES:
+        if file.content_type not in ALLOWED_FILES:
             raise HTTPException(415, "Only PDF, JPEG and PNG files are supported")
         content = await file.read(MAX_BYTES + 1)
+        if not content:
+            raise HTTPException(400, "Uploaded file is empty")
         if len(content) > MAX_BYTES:
             raise HTTPException(413, "File exceeds the 10 MB limit")
         suffix = Path(file.filename or "document").suffix.lower()
+        allowed_suffixes, signatures = ALLOWED_FILES[file.content_type]
+        if suffix not in allowed_suffixes:
+            raise HTTPException(415, "Filename extension does not match the file type")
+        if not any(content.startswith(signature) for signature in signatures):
+            raise HTTPException(415, "File content does not match the declared type")
         stored_name = f"{uuid4().hex}{suffix}"
         self.upload_dir.mkdir(parents=True, exist_ok=True)
         path = self.upload_dir / stored_name

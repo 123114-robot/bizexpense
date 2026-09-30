@@ -11,7 +11,8 @@
 | 6 Analytics | Trends and category summaries | Metrics reconcile to ledger | Aggregate tests |
 | 7 Search/export | Filters and CSV export | Results/export match filters | Query/export tests |
 | 8A Foundation | Environment configuration, migrations, request tracing and response hardening | Migration round-trip and security-header tests pass | Integration/migration tests |
-| 8B Hardening | Authentication, tenant isolation, rate limits and security review | Production readiness review passes | E2E/security/load |
+| 8B Perimeter | Trusted hosts and upload content verification | Spoofed hosts/files are rejected | Security integration/unit tests |
+| 8C Identity | Authentication, tenant isolation, rate limits and security review | Production readiness review passes | E2E/security/load |
 | 9 Deploy/docs | CI/CD and operating guide | Repeatable deployment and support handoff | Deployment smoke test |
 
-This run completes the MVP workflow through Phase 8A. Tesseract mode currently supports PNG/JPEG invoices; PDF rendering is deferred. Production mode relies on Alembic rather than automatic table creation, while authentication, tenant isolation and rate limits remain Phase 8B work.
+This run completes the MVP workflow through Phase 8B. Tesseract mode currently supports PNG/JPEG invoices; PDF rendering is deferred. Production mode relies on Alembic rather than automatic table creation. Trusted hosts and upload signatures are enforced, while authentication, tenant isolation and rate limits remain Phase 8C work.

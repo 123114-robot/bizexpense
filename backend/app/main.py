@@ -6,6 +6,7 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api import categories, dashboard, documents, expenses, suppliers
 from app.core.config import get_settings
@@ -34,6 +35,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_hosts)
 
 
 @app.middleware("http")
