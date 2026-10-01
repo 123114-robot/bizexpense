@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from app.api import auth, categories, dashboard, documents, expenses, suppliers
+from app.api import auth, categories, dashboard, documents, expenses, health, suppliers
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.seed import seed_reference_data
@@ -65,10 +65,13 @@ async def harden_responses(request: Request, call_next):
     return response
 
 
-@app.get("/api/health")
-def health():
-    return {"status": "ok"}
-
-
-for router in (auth.router, expenses.router, suppliers.router, categories.router, documents.router, dashboard.router):
+for router in (
+    health.router,
+    auth.router,
+    expenses.router,
+    suppliers.router,
+    categories.router,
+    documents.router,
+    dashboard.router,
+):
     app.include_router(router, prefix="/api")
