@@ -22,7 +22,8 @@
 ## Intentionally deferred
 
 - [ ] Production deployment configuration
-- [ ] Phase 8C2: enforce authorization, roles and tenant isolation across business APIs
+- [x] Phase 8C2: enforce JWT authentication and per-user tenant isolation across business APIs
+- [ ] Phase 8C3: Web registration/login and shared authenticated API client
 - [ ] Phase 8D: rate limits and deeper security testing
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Duplicate warning using supplier + invoice number + total
