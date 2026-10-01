@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +17,20 @@ class Settings(BaseSettings):
     )
     cors_origins: str = "http://localhost:5173"
     allowed_hosts: str = "localhost,127.0.0.1,testserver"
+    jwt_secret: str = "development-only-change-me"
+    access_token_minutes: int = Field(default=60, ge=5, le=1440)
+
+    @model_validator(mode="after")
+    def require_production_secret(self):
+        if (
+            self.app_environment == "production"
+            and (
+                self.jwt_secret == "development-only-change-me"
+                or len(self.jwt_secret) < 32
+            )
+        ):
+            raise ValueError("JWT_SECRET must be configured in production")
+        return self
 
     @property
     def allowed_origins(self) -> list[str]:
