@@ -25,6 +25,7 @@
 - [x] Phase 8C2: enforce JWT authentication and per-user tenant isolation across business APIs
 - [x] Phase 8C3: Web registration/login and shared authenticated API client
 - [x] Phase 8C4: authenticated CSV download and manual sign-out
+- [x] Phase 9: end-to-end demo smoke coverage and final build verification
 - [ ] Phase 8D: rate limits and deeper security testing
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Duplicate warning using supplier + invoice number + total
