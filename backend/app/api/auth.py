@@ -6,7 +6,13 @@ from app.db.session import get_db
 from app.core.config import get_settings
 from app.core.rate_limit import RateLimitDependency
 from app.models.user import User
-from app.schemas.auth import AuthResponse, LoginRequest, RegisterRequest, UserRead
+from app.schemas.auth import (
+    AuthResponse,
+    LoginRequest,
+    RefreshTokenRequest,
+    RegisterRequest,
+    UserRead,
+)
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -41,6 +47,20 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 )
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     return AuthService(db).login(payload)
+
+
+@router.post(
+    "/refresh", response_model=AuthResponse, dependencies=[Depends(auth_rate_limit)]
+)
+def refresh(payload: RefreshTokenRequest, db: Session = Depends(get_db)):
+    return AuthService(db).refresh(payload)
+
+
+@router.post(
+    "/logout", status_code=204, dependencies=[Depends(auth_rate_limit)]
+)
+def logout(payload: RefreshTokenRequest, db: Session = Depends(get_db)):
+    AuthService(db).logout(payload)
 
 
 @router.get("/me", response_model=UserRead)

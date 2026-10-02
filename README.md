@@ -40,7 +40,7 @@ npm run dev
 
 Open `http://localhost:5173`. The API reads `DATABASE_URL`, `CORS_ORIGINS` and `ALLOWED_HOSTS`. Development mode still creates missing tables for convenience; production mode requires `python -m alembic upgrade head` before startup. Every API response includes a request ID and baseline browser security headers. Uploads must have a permitted MIME type, matching extension and matching file signature.
 
-Authentication endpoints are available at `/api/auth/register`, `/api/auth/login` and `/api/auth/me`. Set a strong `JWT_SECRET` in production; startup rejects the development default. Expense, supplier, dashboard, document and OCR endpoints require a Bearer token and isolate records by the authenticated user. The current MVP treats each user as one tenant; organization membership can be added later without accepting tenant IDs from clients.
+Authentication endpoints are available at `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/auth/logout` and `/api/auth/me`. Login and registration return a short-lived JWT access token plus a rotating opaque refresh token. Refresh tokens are stored only as SHA-256 hashes, can be revoked at logout, and cannot be reused after rotation. Set a strong `JWT_SECRET` in production; startup rejects the development default. Expense, supplier, dashboard, document and OCR endpoints require a Bearer token and isolate records by the authenticated user. The current MVP treats each user as one tenant; organization membership can be added later without accepting tenant IDs from clients.
 
 The Web app redirects unauthenticated visitors to `/login`, supports registration, login and sign-out, stores the JWT in local storage for this prototype, and attaches it to API requests and CSV downloads.
 
