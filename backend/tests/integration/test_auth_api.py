@@ -1,4 +1,5 @@
 from app.models.user import User
+from app.api.auth import auth_rate_limit
 
 
 def registration_payload(**changes):
@@ -77,3 +78,26 @@ def test_current_user_requires_a_valid_bearer_token(client):
     assert client.get(
         "/api/auth/me", headers={"Authorization": "Bearer invalid"}
     ).status_code == 401
+
+
+def test_login_rate_limit_returns_retry_after(client):
+    original_limit = auth_rate_limit.limit
+    auth_rate_limit.limit = 2
+    try:
+        for _ in range(2):
+            response = client.post(
+                "/api/auth/login",
+                json={"email": "missing@example.com", "password": "wrong-password"},
+            )
+            assert response.status_code == 401
+
+        blocked = client.post(
+            "/api/auth/login",
+            json={"email": "missing@example.com", "password": "wrong-password"},
+        )
+    finally:
+        auth_rate_limit.limit = original_limit
+
+    assert blocked.status_code == 429
+    assert blocked.json() == {"detail": "Too many requests"}
+    assert int(blocked.headers["Retry-After"]) >= 1

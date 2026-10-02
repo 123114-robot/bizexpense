@@ -28,7 +28,8 @@
 - [x] Phase 9: end-to-end demo smoke coverage and final build verification
 - [x] Phase 10: runtime liveness and database readiness probes
 - [x] Phase 11A: GitHub Actions full regression CI and documented targeted-test workflow
-- [ ] Phase 8D: rate limits and deeper security testing
+- [x] Phase 11B: configurable rate limits for authentication, uploads and OCR
+- [ ] Phase 8D: deeper security testing
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Duplicate warning using supplier + invoice number + total
 - [ ] Accounting-system export and advanced analytics

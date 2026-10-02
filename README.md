@@ -46,6 +46,8 @@ The Web app redirects unauthenticated visitors to `/login`, supports registratio
 
 Runtime probes are available without authentication: `/api/health` is a lightweight liveness check, while `/api/health/ready` verifies the database connection and returns HTTP 503 when it is unavailable.
 
+Authentication, document upload and OCR extraction endpoints use configurable per-client rate limits and return HTTP 429 with `Retry-After` when exceeded. Configure the shared window and endpoint limits with `RATE_LIMIT_WINDOW_SECONDS`, `AUTH_RATE_LIMIT_REQUESTS`, `UPLOAD_RATE_LIMIT_REQUESTS` and `OCR_RATE_LIMIT_REQUESTS`. The MVP limiter is process-local; a multi-worker deployment should replace its storage with a shared Redis-backed limiter.
+
 Mock OCR is the default. The Tesseract integration is a prototype with basic PNG/JPEG invoice-field parsing, not production-grade OCR. Enable it with `OCR_PROVIDER=tesseract`; Windows standard installs are detected automatically, otherwise set `TESSERACT_CMD`. Production accuracy, broad layout compatibility, PDF OCR, field-level confidence, cloud OCR and validation against a large real-invoice dataset are intentionally deferred.
 
 ## Verification
