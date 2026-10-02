@@ -27,6 +27,7 @@
 - [x] Phase 8C4: authenticated CSV download and manual sign-out
 - [x] Phase 9: end-to-end demo smoke coverage and final build verification
 - [x] Phase 10: runtime liveness and database readiness probes
+- [x] Phase 11A: GitHub Actions full regression CI and documented targeted-test workflow
 - [ ] Phase 8D: rate limits and deeper security testing
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Duplicate warning using supplier + invoice number + total
