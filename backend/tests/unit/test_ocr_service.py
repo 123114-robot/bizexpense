@@ -1,11 +1,14 @@
 from decimal import Decimal
+import json
 
+import httpx
 import pytest
 
 from app.services.ocr_service import (
     MockOCRProvider,
     OCRProcessingError,
     TesseractOCRProvider,
+    VisionOCRProvider,
     get_ocr_provider,
 )
 
@@ -51,3 +54,91 @@ def test_tesseract_provider_rejects_pdf_before_running_engine():
 def test_provider_factory_uses_environment(monkeypatch):
     monkeypatch.setenv("OCR_PROVIDER", "tesseract")
     assert isinstance(get_ocr_provider(), TesseractOCRProvider)
+
+
+def test_vision_provider_extracts_strict_unconfirmed_invoice_data(tmp_path):
+    invoice = tmp_path / "invoice.png"
+    invoice.write_bytes(b"\x89PNG\r\n\x1a\nimage")
+
+    def handler(request: httpx.Request):
+        assert request.headers["Authorization"] == "Bearer test-key"
+        body = json.loads(request.content)
+        assert body["model"] == "vision-model"
+        assert body["messages"][0]["content"][0]["image_url"]["url"].startswith(
+            "data:image/png;base64,"
+        )
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps(
+                                {
+                                    "supplier_name": "Woolworths",
+                                    "abn": "88 000 014 675",
+                                    "invoice_number": "R-100",
+                                    "invoice_date": "2026-10-02",
+                                    "due_date": None,
+                                    "subtotal": "35.00",
+                                    "gst": "3.50",
+                                    "total": "38.50",
+                                    "currency": "AUD",
+                                    "confidence": 0.91,
+                                }
+                            )
+                        }
+                    }
+                ]
+            },
+        )
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    result = VisionOCRProvider(
+        api_key="test-key",
+        base_url="https://vision.example/v1",
+        model="vision-model",
+        client=client,
+    ).extract(str(invoice))
+
+    assert result.supplier_name == "Woolworths"
+    assert result.total == Decimal("38.50")
+    assert result.confirmed is False
+
+
+def test_vision_provider_rejects_invalid_accounting_values(tmp_path):
+    invoice = tmp_path / "invoice.jpg"
+    invoice.write_bytes(b"\xff\xd8\xffimage")
+    response = {
+        "choices": [
+            {
+                "message": {
+                    "content": json.dumps(
+                        {
+                            "supplier_name": "Example",
+                            "invoice_date": "2026-10-02",
+                            "subtotal": "10.00",
+                            "gst": "12.00",
+                            "total": "10.00",
+                            "currency": "AUD",
+                            "confidence": 0.8,
+                        }
+                    )
+                }
+            }
+        ]
+    }
+    client = httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=response))
+    )
+
+    with pytest.raises(OCRProcessingError, match="invalid invoice data"):
+        VisionOCRProvider("key", "https://vision.example/v1", "model", client).extract(
+            str(invoice)
+        )
+
+
+def test_provider_factory_supports_vision(monkeypatch):
+    monkeypatch.setenv("OCR_PROVIDER", "vision")
+    monkeypatch.setenv("VISION_API_KEY", "test-key")
+    assert isinstance(get_ocr_provider(), VisionOCRProvider)
