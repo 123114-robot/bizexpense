@@ -42,7 +42,7 @@ Open `http://localhost:5173`. The API reads `DATABASE_URL`, `CORS_ORIGINS` and `
 
 Authentication endpoints are available at `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/auth/logout` and `/api/auth/me`. Login and registration return a short-lived JWT access token plus a rotating opaque refresh token. Refresh tokens are stored only as SHA-256 hashes, can be revoked at logout, and cannot be reused after rotation. Set a strong `JWT_SECRET` in production; startup rejects the development default. Expense, supplier, dashboard, document and OCR endpoints require a Bearer token and isolate records by the authenticated user. The current MVP treats each user as one tenant; organization membership can be added later without accepting tenant IDs from clients.
 
-The Web app redirects unauthenticated visitors to `/login`, supports registration, login and sign-out, stores the JWT in local storage for this prototype, and attaches it to API requests and CSV downloads.
+The Web app redirects unauthenticated visitors to `/login`, supports registration, login and server-side sign-out, stores the access/refresh token pair in local storage for this prototype, and attaches the access token to API requests and CSV downloads. A shared API client performs one refresh-token rotation and retries the original request after an expired access token; failed refresh clears both tokens. For a higher-security production deployment, move the refresh token to a Secure, HttpOnly, SameSite cookie with an explicit CSRF design.
 
 Runtime probes are available without authentication: `/api/health` is a lightweight liveness check, while `/api/health/ready` verifies the database connection and returns HTTP 503 when it is unavailable.
 

@@ -30,7 +30,7 @@
 - [x] Phase 11A: GitHub Actions full regression CI and documented targeted-test workflow
 - [x] Phase 11B: configurable rate limits for authentication, uploads and OCR
 - [x] Phase 11C1: rotating refresh-token API, hashed persistence and logout revocation
-- [ ] Phase 11C2: Web automatic refresh and server-side sign-out integration
+- [x] Phase 11C2: Web automatic refresh and server-side sign-out integration
 - [ ] Phase 8D: deeper security testing
 - [ ] PDF OCR, field-level confidence and cloud OCR provider
 - [ ] Duplicate warning using supplier + invoice number + total
