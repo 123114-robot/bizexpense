@@ -68,6 +68,11 @@ def test_dashboard_excludes_unconfirmed_ocr_drafts(auth_client):
     assert summary.json()["expenses_this_month"] == "165.00"
     assert summary.json()["gst_paid"] == "15.00"
     assert summary.json()["expense_count"] == 2
+    assert summary.json()["average_expense"] == "82.50"
+    assert summary.json()["top_suppliers"] == [
+        {"supplier": "Acme Office Supplies", "total": "110.00", "expense_count": 1},
+        {"supplier": "Fuel Station", "total": "55.00", "expense_count": 1},
+    ]
     assert summary.json()["category_breakdown"] == [
         {"category": "Office Supplies", "total": "110.00", "expense_count": 1},
         {"category": "Fuel", "total": "55.00", "expense_count": 1},
