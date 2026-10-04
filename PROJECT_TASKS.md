@@ -32,6 +32,7 @@
 - [x] Phase 11C1: rotating refresh-token API, hashed persistence and logout revocation
 - [x] Phase 11C2: Web automatic refresh and server-side sign-out integration
 - [x] Phase 11D: optional OpenAI-compatible Vision OCR with strict response validation
+- [x] Phase 11E1: PostgreSQL migration and core-schema smoke coverage in GitHub CI
 - [ ] Phase 8D: deeper security testing
 - [ ] PDF OCR, provider-derived field confidence and representative invoice validation
 - [ ] Duplicate warning using supplier + invoice number + total
