@@ -19,6 +19,8 @@ export type Dashboard = {
   expenses_this_month: string
   gst_paid: string
   expense_count: number
+  average_expense: string
+  top_suppliers: { supplier: string; total: string; expense_count: number }[]
   category_breakdown: { category: string; total: string; expense_count: number }[]
   monthly_trend: { month: string; total: string }[]
 }
