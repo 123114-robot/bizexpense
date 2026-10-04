@@ -45,6 +45,30 @@ Total $110.00
     assert result.confirmed is False
 
 
+def test_tesseract_parser_handles_alternate_labels_and_month_name_dates():
+    text = """TAX INVOICE
+Harbour IT Services Pty Ltd
+ABN: 51 824 753 556
+Invoice # HITS-908
+Date: 4 Oct 2026
+Payment Due 18 Oct 2026
+Sub Total: $1,234.50
+Tax / GST: $123.45
+Amount Due: AUD 1,357.95
+"""
+    provider = TesseractOCRProvider(engine=lambda _: (text, 81.0))
+
+    result = provider.extract("invoice.jpg")
+
+    assert result.supplier_name == "Harbour IT Services Pty Ltd"
+    assert result.invoice_number == "HITS-908"
+    assert result.invoice_date.isoformat() == "2026-10-04"
+    assert result.due_date and result.due_date.isoformat() == "2026-10-18"
+    assert result.subtotal == Decimal("1234.50")
+    assert result.gst == Decimal("123.45")
+    assert result.total == Decimal("1357.95")
+
+
 def test_tesseract_provider_rejects_pdf_before_running_engine():
     provider = TesseractOCRProvider(engine=lambda _: pytest.fail("engine should not run"))
     with pytest.raises(OCRProcessingError, match="PNG and JPEG"):

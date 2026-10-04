@@ -9,7 +9,7 @@
 - [x] Phase 4A: OCR provider abstraction and deterministic Mock provider
 - [x] Phase 4B: Tesseract PNG/JPEG prototype and basic invoice field parser
 - [ ] Phase 4C: validation against a representative real-invoice dataset
-- [ ] Phase 4D: parser hardening for varied layouts and OCR errors
+- [x] Phase 4D: parser hardening for common alternate invoice layouts
 - [x] Phase 5 (mock workflow): editable review and explicit confirmation
 - [x] Database-backed dashboard summary
 - [x] Phase 6: confirmed-expense category breakdown and six-month trend
@@ -35,6 +35,7 @@
 - [x] Phase 11E1: PostgreSQL migration and core-schema smoke coverage in GitHub CI
 - [x] Phase 12: non-blocking duplicate expense warning using supplier, invoice number and total
 - [x] Phase 13: authentication, tenant mutation and hardened-error security regression tests
+- [x] Phase 14: Tesseract parser hardening for alternate labels and month-name dates
 - [x] Phase 8D: deeper security regression coverage for high-risk API boundaries
 - [ ] PDF OCR, provider-derived field confidence and representative invoice validation
 - [ ] Accounting-system export and advanced analytics

@@ -85,29 +85,55 @@ class TesseractOCRProvider(OCRProvider):
             return result.group(1).strip() if result else None
 
         def money(label: str) -> Decimal:
-            value = match(rf"^{label}\s*[:$]?\s*\$?([\d,]+\.\d{{2}})")
+            value = match(
+                rf"^{label}\s*:?\s*(?:AUD\s*)?\$?([\d,]+(?:\.\d{{2}})?)"
+            )
             return Decimal(value.replace(",", "")) if value else Decimal("0.00")
 
         def parsed_date(label: str) -> date | None:
-            value = match(rf"{label}\s*:?\s*(\d{{1,2}}[/-]\d{{1,2}}[/-]\d{{4}}|\d{{4}}-\d{{2}}-\d{{2}})")
+            value = match(
+                rf"^(?:{label})\s*:?\s*"
+                r"(\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4}-\d{2}-\d{2}|"
+                r"\d{1,2}\s+[A-Z]{3,9}\s+\d{4})"
+            )
             if not value:
                 return None
-            for format_string in ("%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d"):
+            for format_string in (
+                "%d/%m/%Y",
+                "%d-%m-%Y",
+                "%Y-%m-%d",
+                "%d %b %Y",
+                "%d %B %Y",
+            ):
                 try:
                     return date.fromisoformat(value) if format_string == "%Y-%m-%d" else datetime.strptime(value, format_string).date()
                 except ValueError:
                     continue
             return None
 
+        supplier_name = next(
+            (
+                line
+                for line in lines
+                if not re.match(
+                    r"^(?:tax\s+invoice|invoice|receipt|abn\b|date\b|due\b|"
+                    r"payment\s+due|sub\s*total|gst\b|tax\s*/?\s*gst|amount\s+due|total\b)",
+                    line,
+                    re.IGNORECASE,
+                )
+            ),
+            "Unknown supplier",
+        )
+
         return OCRResult(
-            supplier_name=lines[0] if lines else "Unknown supplier",
+            supplier_name=supplier_name,
             abn=match(r"\bABN\s*:?\s*([\d ]{11,14})"),
             invoice_number=match(r"Invoice\s*(?:No\.?|Number|#)\s*:?\s*([A-Z0-9-]+)"),
-            invoice_date=parsed_date(r"Invoice\s+Date") or date.today(),
-            due_date=parsed_date(r"Due\s+Date"),
-            subtotal=money("Subtotal"),
-            gst=money("GST"),
-            total=money("Total"),
+            invoice_date=parsed_date(r"Invoice\s+Date|Date") or date.today(),
+            due_date=parsed_date(r"Due\s+Date|Payment\s+Due"),
+            subtotal=money(r"Sub\s*Total"),
+            gst=money(r"(?:GST|Tax\s*/?\s*GST)"),
+            total=money(r"(?:Total|Amount\s+Due)"),
             currency="AUD",
             confidence=max(0.0, min(confidence_percent / 100, 1.0)),
             confirmed=False,
