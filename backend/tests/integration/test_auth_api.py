@@ -1,6 +1,11 @@
+from datetime import datetime, timedelta, timezone
+
+import jwt
+
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.api.auth import auth_rate_limit
+from app.core.config import get_settings
 
 
 def registration_payload(**changes):
@@ -80,6 +85,46 @@ def test_current_user_requires_a_valid_bearer_token(client):
     assert client.get(
         "/api/auth/me", headers={"Authorization": "Bearer invalid"}
     ).status_code == 401
+
+
+def test_access_token_rejects_expired_wrong_signature_and_wrong_type(client):
+    registered = client.post("/api/auth/register", json=registration_payload())
+    user_id = registered.json()["user"]["id"]
+    settings = get_settings()
+    expired = jwt.encode(
+        {
+            "sub": str(user_id),
+            "exp": datetime.now(timezone.utc) - timedelta(seconds=1),
+            "type": "access",
+        },
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+    wrong_signature = jwt.encode(
+        {
+            "sub": str(user_id),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
+            "type": "access",
+        },
+        "not-the-application-secret",
+        algorithm="HS256",
+    )
+    wrong_type = jwt.encode(
+        {
+            "sub": str(user_id),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
+            "type": "refresh",
+        },
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+
+    for token in (expired, wrong_signature, wrong_type):
+        response = client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid or expired access token"
 
 
 def test_login_rate_limit_returns_retry_after(client):

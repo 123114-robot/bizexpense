@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import tempfile
 from typing import Callable
 
 import httpx
@@ -35,19 +36,65 @@ class OCRProcessingError(RuntimeError):
 
 
 class TesseractOCRProvider(OCRProvider):
-    def __init__(self, engine: Callable[[str], tuple[str, float]] | None = None):
+    def __init__(
+        self,
+        engine: Callable[[str], tuple[str, float]] | None = None,
+        pdf_renderer: Callable[[str, str], None] | None = None,
+    ):
         self.engine = engine or self._run_tesseract
+        self.pdf_renderer = pdf_renderer or self._render_pdf_first_page
 
     def extract(self, file_path: str) -> OCRResult:
-        if Path(file_path).suffix.lower() not in {".png", ".jpg", ".jpeg"}:
-            raise OCRProcessingError("Tesseract OCR currently supports PNG and JPEG invoices only")
+        suffix = Path(file_path).suffix.lower()
+        if suffix not in {".pdf", ".png", ".jpg", ".jpeg"}:
+            raise OCRProcessingError(
+                "Tesseract OCR currently supports PDF, PNG and JPEG invoices only"
+            )
+        image_path = file_path
+        temporary_image: Path | None = None
         try:
-            text, confidence_percent = self.engine(file_path)
+            if suffix == ".pdf":
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as image:
+                    temporary_image = Path(image.name)
+                self.pdf_renderer(file_path, str(temporary_image))
+                image_path = str(temporary_image)
+            text, confidence_percent = self.engine(image_path)
         except OCRProcessingError:
             raise
         except Exception as exc:
             raise OCRProcessingError(f"Tesseract OCR failed: {exc}") from exc
+        finally:
+            if temporary_image:
+                temporary_image.unlink(missing_ok=True)
         return self._parse(text, confidence_percent)
+
+    @staticmethod
+    def _render_pdf_first_page(file_path: str, destination: str) -> None:
+        try:
+            import pypdfium2 as pdfium
+        except ImportError as exc:
+            raise OCRProcessingError(
+                "Install pypdfium2 to process PDF invoices"
+            ) from exc
+        document = None
+        page = None
+        bitmap = None
+        try:
+            document = pdfium.PdfDocument(file_path)
+            if len(document) == 0:
+                raise OCRProcessingError("PDF invoice has no pages")
+            page = document[0]
+            bitmap = page.render(scale=3)
+            bitmap.to_pil().save(destination, format="PNG")
+        except OCRProcessingError:
+            raise
+        except Exception as exc:
+            raise OCRProcessingError(f"PDF rendering failed: {exc}") from exc
+        finally:
+            for resource in (bitmap, page, document):
+                close = getattr(resource, "close", None)
+                if close:
+                    close()
 
     @staticmethod
     def _run_tesseract(file_path: str) -> tuple[str, float]:
@@ -85,29 +132,55 @@ class TesseractOCRProvider(OCRProvider):
             return result.group(1).strip() if result else None
 
         def money(label: str) -> Decimal:
-            value = match(rf"^{label}\s*[:$]?\s*\$?([\d,]+\.\d{{2}})")
+            value = match(
+                rf"^{label}\s*:?\s*(?:AUD\s*)?\$?([\d,]+(?:\.\d{{2}})?)"
+            )
             return Decimal(value.replace(",", "")) if value else Decimal("0.00")
 
         def parsed_date(label: str) -> date | None:
-            value = match(rf"{label}\s*:?\s*(\d{{1,2}}[/-]\d{{1,2}}[/-]\d{{4}}|\d{{4}}-\d{{2}}-\d{{2}})")
+            value = match(
+                rf"^(?:{label})\s*:?\s*"
+                r"(\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4}-\d{2}-\d{2}|"
+                r"\d{1,2}\s+[A-Z]{3,9}\s+\d{4})"
+            )
             if not value:
                 return None
-            for format_string in ("%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d"):
+            for format_string in (
+                "%d/%m/%Y",
+                "%d-%m-%Y",
+                "%Y-%m-%d",
+                "%d %b %Y",
+                "%d %B %Y",
+            ):
                 try:
                     return date.fromisoformat(value) if format_string == "%Y-%m-%d" else datetime.strptime(value, format_string).date()
                 except ValueError:
                     continue
             return None
 
+        supplier_name = next(
+            (
+                line
+                for line in lines
+                if not re.match(
+                    r"^(?:tax\s+invoice|invoice|receipt|abn\b|date\b|due\b|"
+                    r"payment\s+due|sub\s*total|gst\b|tax\s*/?\s*gst|amount\s+due|total\b)",
+                    line,
+                    re.IGNORECASE,
+                )
+            ),
+            "Unknown supplier",
+        )
+
         return OCRResult(
-            supplier_name=lines[0] if lines else "Unknown supplier",
+            supplier_name=supplier_name,
             abn=match(r"\bABN\s*:?\s*([\d ]{11,14})"),
             invoice_number=match(r"Invoice\s*(?:No\.?|Number|#)\s*:?\s*([A-Z0-9-]+)"),
-            invoice_date=parsed_date(r"Invoice\s+Date") or date.today(),
-            due_date=parsed_date(r"Due\s+Date"),
-            subtotal=money("Subtotal"),
-            gst=money("GST"),
-            total=money("Total"),
+            invoice_date=parsed_date(r"Invoice\s+Date|Date") or date.today(),
+            due_date=parsed_date(r"Due\s+Date|Payment\s+Due"),
+            subtotal=money(r"Sub\s*Total"),
+            gst=money(r"(?:GST|Tax\s*/?\s*GST)"),
+            total=money(r"(?:Total|Amount\s+Due)"),
             currency="AUD",
             confidence=max(0.0, min(confidence_percent / 100, 1.0)),
             confirmed=False,

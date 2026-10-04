@@ -86,6 +86,19 @@ def test_unconfirmed_ocr_expense_is_preserved_as_unconfirmed(auth_client):
     assert created.json()["ocr_confirmed"] is False
 
 
+def test_duplicate_expense_is_saved_with_non_blocking_warning(auth_client):
+    client = auth_client
+    first = client.post("/api/expenses", json=expense_payload(invoice_number="DUP-1"))
+    second = client.post("/api/expenses", json=expense_payload(invoice_number="DUP-1"))
+
+    assert first.status_code == 201
+    assert first.json()["duplicate_warning"] is False
+    assert second.status_code == 201
+    assert second.json()["duplicate_warning"] is True
+    assert second.json()["duplicate_expense_id"] == first.json()["id"]
+    assert len(client.get("/api/expenses").json()) == 2
+
+
 def test_expense_filters_and_csv_export_use_the_same_results(auth_client):
     client = auth_client
     client.post(

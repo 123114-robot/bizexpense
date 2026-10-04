@@ -18,6 +18,19 @@ def test_request_id_is_generated_when_missing(client):
     assert len(response.headers["x-request-id"]) == 32
 
 
+def test_invalid_request_id_is_replaced_and_error_responses_remain_hardened(client):
+    supplied_id = "unsafe/request id"
+    response = client.get(
+        "/api/expenses", headers={"X-Request-ID": supplied_id}
+    )
+
+    assert response.status_code == 401
+    assert response.headers["x-request-id"] != supplied_id
+    assert len(response.headers["x-request-id"]) == 32
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+
+
 def test_untrusted_host_is_rejected(client):
     response = client.get("/api/health", headers={"Host": "attacker.example"})
 
