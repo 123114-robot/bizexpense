@@ -36,8 +36,9 @@
 - [x] Phase 12: non-blocking duplicate expense warning using supplier, invoice number and total
 - [x] Phase 13: authentication, tenant mutation and hardened-error security regression tests
 - [x] Phase 14: Tesseract parser hardening for alternate labels and month-name dates
+- [x] Phase 15: keyboard skip navigation, labelled landmarks and accessible form errors
 - [x] Phase 8D: deeper security regression coverage for high-risk API boundaries
 - [ ] PDF OCR, provider-derived field confidence and representative invoice validation
 - [ ] Accounting-system export and advanced analytics
 - [ ] Object storage, malware scanning and document retention policy
-- [ ] Accessibility and browser E2E hardening
+- [ ] Browser E2E hardening (baseline accessibility improvements completed in Phase 15)

@@ -35,7 +35,7 @@ export function AuthPage() {
       {register && <label className="block">Name<input className="field mt-1" value={name} onChange={event => setName(event.target.value)} required /></label>}
       <label className="block">Email<input className="field mt-1" type="email" value={email} onChange={event => setEmail(event.target.value)} required /></label>
       <label className="block">Password<input className="field mt-1" type="password" minLength={12} value={password} onChange={event => setPassword(event.target.value)} required /></label>
-      {error && <p role="alert" className="text-red-700">{error}</p>}
+      {error && <p role="alert" aria-live="assertive" className="text-red-700">{error}</p>}
       <button className="btn w-full">{register ? 'Register' : 'Sign in'}</button>
     </form>
     <button className="mt-4 text-teal-700" onClick={() => setRegister(!register)}>{register ? 'Already registered? Sign in' : 'Need an account? Register'}</button>
