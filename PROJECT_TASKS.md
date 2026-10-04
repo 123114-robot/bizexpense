@@ -37,8 +37,9 @@
 - [x] Phase 13: authentication, tenant mutation and hardened-error security regression tests
 - [x] Phase 14: Tesseract parser hardening for alternate labels and month-name dates
 - [x] Phase 15: keyboard skip navigation, labelled landmarks and accessible form errors
+- [x] Phase 16: first-page PDF rendering for local Tesseract OCR
 - [x] Phase 8D: deeper security regression coverage for high-risk API boundaries
-- [ ] PDF OCR, provider-derived field confidence and representative invoice validation
+- [ ] Multi-page PDF OCR, provider-derived field confidence and representative invoice validation
 - [ ] Accounting-system export and advanced analytics
 - [ ] Object storage, malware scanning and document retention policy
 - [ ] Browser E2E hardening (baseline accessibility improvements completed in Phase 15)

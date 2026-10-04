@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import tempfile
 from typing import Callable
 
 import httpx
@@ -35,19 +36,65 @@ class OCRProcessingError(RuntimeError):
 
 
 class TesseractOCRProvider(OCRProvider):
-    def __init__(self, engine: Callable[[str], tuple[str, float]] | None = None):
+    def __init__(
+        self,
+        engine: Callable[[str], tuple[str, float]] | None = None,
+        pdf_renderer: Callable[[str, str], None] | None = None,
+    ):
         self.engine = engine or self._run_tesseract
+        self.pdf_renderer = pdf_renderer or self._render_pdf_first_page
 
     def extract(self, file_path: str) -> OCRResult:
-        if Path(file_path).suffix.lower() not in {".png", ".jpg", ".jpeg"}:
-            raise OCRProcessingError("Tesseract OCR currently supports PNG and JPEG invoices only")
+        suffix = Path(file_path).suffix.lower()
+        if suffix not in {".pdf", ".png", ".jpg", ".jpeg"}:
+            raise OCRProcessingError(
+                "Tesseract OCR currently supports PDF, PNG and JPEG invoices only"
+            )
+        image_path = file_path
+        temporary_image: Path | None = None
         try:
-            text, confidence_percent = self.engine(file_path)
+            if suffix == ".pdf":
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as image:
+                    temporary_image = Path(image.name)
+                self.pdf_renderer(file_path, str(temporary_image))
+                image_path = str(temporary_image)
+            text, confidence_percent = self.engine(image_path)
         except OCRProcessingError:
             raise
         except Exception as exc:
             raise OCRProcessingError(f"Tesseract OCR failed: {exc}") from exc
+        finally:
+            if temporary_image:
+                temporary_image.unlink(missing_ok=True)
         return self._parse(text, confidence_percent)
+
+    @staticmethod
+    def _render_pdf_first_page(file_path: str, destination: str) -> None:
+        try:
+            import pypdfium2 as pdfium
+        except ImportError as exc:
+            raise OCRProcessingError(
+                "Install pypdfium2 to process PDF invoices"
+            ) from exc
+        document = None
+        page = None
+        bitmap = None
+        try:
+            document = pdfium.PdfDocument(file_path)
+            if len(document) == 0:
+                raise OCRProcessingError("PDF invoice has no pages")
+            page = document[0]
+            bitmap = page.render(scale=3)
+            bitmap.to_pil().save(destination, format="PNG")
+        except OCRProcessingError:
+            raise
+        except Exception as exc:
+            raise OCRProcessingError(f"PDF rendering failed: {exc}") from exc
+        finally:
+            for resource in (bitmap, page, document):
+                close = getattr(resource, "close", None)
+                if close:
+                    close()
 
     @staticmethod
     def _run_tesseract(file_path: str) -> tuple[str, float]:

@@ -1,8 +1,10 @@
 from decimal import Decimal
 import json
+from pathlib import Path
 
 import httpx
 import pytest
+from PIL import Image
 
 from app.services.ocr_service import (
     MockOCRProvider,
@@ -69,10 +71,42 @@ Amount Due: AUD 1,357.95
     assert result.total == Decimal("1357.95")
 
 
-def test_tesseract_provider_rejects_pdf_before_running_engine():
-    provider = TesseractOCRProvider(engine=lambda _: pytest.fail("engine should not run"))
-    with pytest.raises(OCRProcessingError, match="PNG and JPEG"):
-        provider.extract("invoice.pdf")
+def test_tesseract_provider_renders_pdf_then_removes_temporary_image():
+    rendered_path = None
+
+    def render_pdf(source: str, destination: str):
+        nonlocal rendered_path
+        assert source == "invoice.pdf"
+        rendered_path = destination
+        with open(destination, "wb") as image:
+            image.write(b"\x89PNG\r\n\x1a\nrendered")
+
+    def engine(path: str):
+        assert path == rendered_path
+        return """Acme Pty Ltd
+Invoice No: PDF-1
+Total $11.00
+GST $1.00
+Subtotal $10.00
+""", 80.0
+
+    provider = TesseractOCRProvider(engine=engine, pdf_renderer=render_pdf)
+    result = provider.extract("invoice.pdf")
+
+    assert result.invoice_number == "PDF-1"
+    assert result.total == Decimal("11.00")
+    assert rendered_path is not None
+    assert not Path(rendered_path).exists()
+
+
+def test_default_pdf_renderer_creates_png_from_first_page(tmp_path):
+    pdf_path = tmp_path / "invoice.pdf"
+    png_path = tmp_path / "invoice.png"
+    Image.new("RGB", (20, 20), "white").save(pdf_path, format="PDF")
+
+    TesseractOCRProvider._render_pdf_first_page(str(pdf_path), str(png_path))
+
+    assert png_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
 
 
 def test_provider_factory_uses_environment(monkeypatch):
