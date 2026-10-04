@@ -34,7 +34,8 @@
 - [x] Phase 11D: optional OpenAI-compatible Vision OCR with strict response validation
 - [x] Phase 11E1: PostgreSQL migration and core-schema smoke coverage in GitHub CI
 - [x] Phase 12: non-blocking duplicate expense warning using supplier, invoice number and total
-- [ ] Phase 8D: deeper security testing
+- [x] Phase 13: authentication, tenant mutation and hardened-error security regression tests
+- [x] Phase 8D: deeper security regression coverage for high-risk API boundaries
 - [ ] PDF OCR, provider-derived field confidence and representative invoice validation
 - [ ] Accounting-system export and advanced analytics
 - [ ] Object storage, malware scanning and document retention policy
