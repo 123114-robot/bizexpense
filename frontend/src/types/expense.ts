@@ -3,8 +3,9 @@ export type Expense = {
   document_id: number | null; invoice_number: string | null; invoice_date: string; due_date: string | null;
   subtotal: string; gst_amount: string; total_amount: string; currency: string; description: string;
   ocr_confidence: number | null; ocr_confirmed: boolean;
+  duplicate_warning: boolean; duplicate_expense_id: number | null;
 }
-export type ExpenseInput = Omit<Expense, 'id' | 'category_name'>
+export type ExpenseInput = Omit<Expense, 'id' | 'category_name' | 'duplicate_warning' | 'duplicate_expense_id'>
 export type Category = { id: number; name: string }
 export type ExpenseFilters = {
   search?: string

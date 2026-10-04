@@ -33,9 +33,9 @@
 - [x] Phase 11C2: Web automatic refresh and server-side sign-out integration
 - [x] Phase 11D: optional OpenAI-compatible Vision OCR with strict response validation
 - [x] Phase 11E1: PostgreSQL migration and core-schema smoke coverage in GitHub CI
+- [x] Phase 12: non-blocking duplicate expense warning using supplier, invoice number and total
 - [ ] Phase 8D: deeper security testing
 - [ ] PDF OCR, provider-derived field confidence and representative invoice validation
-- [ ] Duplicate warning using supplier + invoice number + total
 - [ ] Accounting-system export and advanced analytics
 - [ ] Object storage, malware scanning and document retention policy
 - [ ] Accessibility and browser E2E hardening
