@@ -27,8 +27,13 @@
 - [x] Phase 8C4: authenticated CSV download and manual sign-out
 - [x] Phase 9: end-to-end demo smoke coverage and final build verification
 - [x] Phase 10: runtime liveness and database readiness probes
-- [ ] Phase 8D: rate limits and deeper security testing
-- [ ] PDF OCR, field-level confidence and cloud OCR provider
+- [x] Phase 11A: GitHub Actions full regression CI and documented targeted-test workflow
+- [x] Phase 11B: configurable rate limits for authentication, uploads and OCR
+- [x] Phase 11C1: rotating refresh-token API, hashed persistence and logout revocation
+- [x] Phase 11C2: Web automatic refresh and server-side sign-out integration
+- [x] Phase 11D: optional OpenAI-compatible Vision OCR with strict response validation
+- [ ] Phase 8D: deeper security testing
+- [ ] PDF OCR, provider-derived field confidence and representative invoice validation
 - [ ] Duplicate warning using supplier + invoice number + total
 - [ ] Accounting-system export and advanced analytics
 - [ ] Object storage, malware scanning and document retention policy

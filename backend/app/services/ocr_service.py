@@ -1,10 +1,15 @@
 from abc import ABC, abstractmethod
+import base64
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+import json
 import os
 from pathlib import Path
 import re
 from typing import Callable
+
+import httpx
+from pydantic import ValidationError
 
 from app.schemas.document import OCRResult
 
@@ -109,8 +114,86 @@ class TesseractOCRProvider(OCRProvider):
         )
 
 
+class VisionOCRProvider(OCRProvider):
+    MIME_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
+
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        model: str,
+        client: httpx.Client | None = None,
+    ):
+        self.api_key = api_key
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.client = client
+
+    def extract(self, file_path: str) -> OCRResult:
+        suffix = Path(file_path).suffix.lower()
+        if suffix not in self.MIME_TYPES:
+            raise OCRProcessingError("Vision OCR currently supports PNG and JPEG invoices only")
+        if not self.api_key:
+            raise OCRProcessingError("VISION_API_KEY is required for Vision OCR")
+
+        encoded = base64.b64encode(Path(file_path).read_bytes()).decode()
+        payload = {
+            "model": self.model,
+            "temperature": 0,
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{self.MIME_TYPES[suffix]};base64,{encoded}"
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": (
+                                "Extract this invoice without guessing missing values. Return only JSON "
+                                "with supplier_name, abn, invoice_number, invoice_date, due_date, "
+                                "subtotal, gst, total, currency, and confidence. Dates must be YYYY-MM-DD, "
+                                "money must be decimal numbers, currency must be a three-letter ISO code, "
+                                "confidence must be between 0 and 1, and nullable fields may be null."
+                            ),
+                        },
+                    ],
+                }
+            ],
+        }
+        try:
+            response = self._post(payload)
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            extracted = json.loads(content)
+            extracted["confirmed"] = False
+            return OCRResult.model_validate(extracted)
+        except (httpx.HTTPError, KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+            raise OCRProcessingError("Vision OCR request returned an invalid response") from exc
+        except ValidationError as exc:
+            raise OCRProcessingError("Vision OCR returned invalid invoice data") from exc
+
+    def _post(self, payload: dict) -> httpx.Response:
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        url = f"{self.base_url}/chat/completions"
+        if self.client:
+            return self.client.post(url, headers=headers, json=payload, timeout=30)
+        with httpx.Client(timeout=30) as client:
+            return client.post(url, headers=headers, json=payload)
+
+
 def get_ocr_provider() -> OCRProvider:
     provider = os.getenv("OCR_PROVIDER", "mock").lower()
     if provider == "tesseract":
         return TesseractOCRProvider()
+    if provider == "vision":
+        return VisionOCRProvider(
+            api_key=os.getenv("VISION_API_KEY", ""),
+            base_url=os.getenv("VISION_BASE_URL", "https://api.openai.com/v1"),
+            model=os.getenv("VISION_MODEL", "gpt-4o-mini"),
+        )
     return MockOCRProvider()
