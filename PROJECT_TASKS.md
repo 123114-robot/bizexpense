@@ -39,8 +39,9 @@
 - [x] Phase 15: keyboard skip navigation, labelled landmarks and accessible form errors
 - [x] Phase 16: first-page PDF rendering for local Tesseract OCR
 - [x] Phase 17: average expense and tenant-scoped top-supplier dashboard insights
+- [x] Phase 18: bounded multi-page PDF rendering and combined local Tesseract OCR
 - [x] Phase 8D: deeper security regression coverage for high-risk API boundaries
-- [ ] Multi-page PDF OCR, provider-derived field confidence and representative invoice validation
+- [ ] Provider-derived field confidence and representative invoice validation
 - [ ] Accounting-system export (dashboard analytics expanded in Phase 17)
 - [ ] Object storage, malware scanning and document retention policy
 - [ ] Browser E2E hardening (baseline accessibility improvements completed in Phase 15)

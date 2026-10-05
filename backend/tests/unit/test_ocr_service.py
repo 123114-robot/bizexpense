@@ -71,42 +71,59 @@ Amount Due: AUD 1,357.95
     assert result.total == Decimal("1357.95")
 
 
-def test_tesseract_provider_renders_pdf_then_removes_temporary_image():
-    rendered_path = None
+def test_tesseract_provider_combines_pdf_pages_then_removes_temporary_images():
+    rendered_paths: list[str] = []
 
     def render_pdf(source: str, destination: str):
-        nonlocal rendered_path
         assert source == "invoice.pdf"
-        rendered_path = destination
-        with open(destination, "wb") as image:
-            image.write(b"\x89PNG\r\n\x1a\nrendered")
+        for page_number in (1, 2):
+            path = str(Path(destination) / f"page-{page_number}.png")
+            Path(path).write_bytes(b"\x89PNG\r\n\x1a\nrendered")
+            rendered_paths.append(path)
+        return rendered_paths
 
     def engine(path: str):
-        assert path == rendered_path
-        return """Acme Pty Ltd
-Invoice No: PDF-1
-Total $11.00
-GST $1.00
-Subtotal $10.00
-""", 80.0
+        if path == rendered_paths[0]:
+            return "Acme Pty Ltd\nInvoice No: PDF-1\n", 80.0
+        return "Subtotal $10.00\nGST $1.00\nTotal $11.00\n", 90.0
 
     provider = TesseractOCRProvider(engine=engine, pdf_renderer=render_pdf)
     result = provider.extract("invoice.pdf")
 
     assert result.invoice_number == "PDF-1"
     assert result.total == Decimal("11.00")
-    assert rendered_path is not None
-    assert not Path(rendered_path).exists()
+    assert result.confidence == 0.85
+    assert len(rendered_paths) == 2
+    assert all(not Path(path).exists() for path in rendered_paths)
 
 
-def test_default_pdf_renderer_creates_png_from_first_page(tmp_path):
+def test_default_pdf_renderer_creates_png_for_each_page(tmp_path):
     pdf_path = tmp_path / "invoice.pdf"
-    png_path = tmp_path / "invoice.png"
-    Image.new("RGB", (20, 20), "white").save(pdf_path, format="PDF")
+    output_dir = tmp_path / "pages"
+    output_dir.mkdir()
+    first = Image.new("RGB", (20, 20), "white")
+    second = Image.new("RGB", (20, 20), "black")
+    first.save(pdf_path, format="PDF", save_all=True, append_images=[second])
 
-    TesseractOCRProvider._render_pdf_first_page(str(pdf_path), str(png_path))
+    provider = TesseractOCRProvider(pdf_page_limit=5)
+    rendered = provider._render_pdf_pages(str(pdf_path), str(output_dir))
 
-    assert png_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert len(rendered) == 2
+    assert all(Path(path).read_bytes().startswith(b"\x89PNG\r\n\x1a\n") for path in rendered)
+
+
+def test_default_pdf_renderer_respects_page_limit(tmp_path):
+    pdf_path = tmp_path / "invoice.pdf"
+    output_dir = tmp_path / "pages"
+    output_dir.mkdir()
+    pages = [Image.new("RGB", (20, 20), colour) for colour in ("white", "black", "grey")]
+    pages[0].save(pdf_path, format="PDF", save_all=True, append_images=pages[1:])
+
+    rendered = TesseractOCRProvider(pdf_page_limit=2)._render_pdf_pages(
+        str(pdf_path), str(output_dir)
+    )
+
+    assert len(rendered) == 2
 
 
 def test_provider_factory_uses_environment(monkeypatch):

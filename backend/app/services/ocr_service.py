@@ -39,10 +39,12 @@ class TesseractOCRProvider(OCRProvider):
     def __init__(
         self,
         engine: Callable[[str], tuple[str, float]] | None = None,
-        pdf_renderer: Callable[[str, str], None] | None = None,
+        pdf_renderer: Callable[[str, str], list[str]] | None = None,
+        pdf_page_limit: int = 5,
     ):
         self.engine = engine or self._run_tesseract
-        self.pdf_renderer = pdf_renderer or self._render_pdf_first_page
+        self.pdf_page_limit = max(1, pdf_page_limit)
+        self.pdf_renderer = pdf_renderer or self._render_pdf_pages
 
     def extract(self, file_path: str) -> OCRResult:
         suffix = Path(file_path).suffix.lower()
@@ -50,26 +52,26 @@ class TesseractOCRProvider(OCRProvider):
             raise OCRProcessingError(
                 "Tesseract OCR currently supports PDF, PNG and JPEG invoices only"
             )
-        image_path = file_path
-        temporary_image: Path | None = None
         try:
             if suffix == ".pdf":
-                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as image:
-                    temporary_image = Path(image.name)
-                self.pdf_renderer(file_path, str(temporary_image))
-                image_path = str(temporary_image)
-            text, confidence_percent = self.engine(image_path)
+                with tempfile.TemporaryDirectory() as directory:
+                    image_paths = self.pdf_renderer(file_path, directory)
+                    if not image_paths:
+                        raise OCRProcessingError("PDF invoice has no renderable pages")
+                    page_results = [self.engine(path) for path in image_paths]
+                text = "\n".join(page_text for page_text, _ in page_results)
+                confidence_percent = sum(
+                    confidence for _, confidence in page_results
+                ) / len(page_results)
+            else:
+                text, confidence_percent = self.engine(file_path)
         except OCRProcessingError:
             raise
         except Exception as exc:
             raise OCRProcessingError(f"Tesseract OCR failed: {exc}") from exc
-        finally:
-            if temporary_image:
-                temporary_image.unlink(missing_ok=True)
         return self._parse(text, confidence_percent)
 
-    @staticmethod
-    def _render_pdf_first_page(file_path: str, destination: str) -> None:
+    def _render_pdf_pages(self, file_path: str, destination: str) -> list[str]:
         try:
             import pypdfium2 as pdfium
         except ImportError as exc:
@@ -77,24 +79,34 @@ class TesseractOCRProvider(OCRProvider):
                 "Install pypdfium2 to process PDF invoices"
             ) from exc
         document = None
-        page = None
-        bitmap = None
         try:
             document = pdfium.PdfDocument(file_path)
             if len(document) == 0:
                 raise OCRProcessingError("PDF invoice has no pages")
-            page = document[0]
-            bitmap = page.render(scale=3)
-            bitmap.to_pil().save(destination, format="PNG")
+            rendered_paths = []
+            for page_index in range(min(len(document), self.pdf_page_limit)):
+                page = None
+                bitmap = None
+                try:
+                    page = document[page_index]
+                    bitmap = page.render(scale=3)
+                    page_path = str(Path(destination) / f"page-{page_index + 1}.png")
+                    bitmap.to_pil().save(page_path, format="PNG")
+                    rendered_paths.append(page_path)
+                finally:
+                    for resource in (bitmap, page):
+                        close = getattr(resource, "close", None)
+                        if close:
+                            close()
+            return rendered_paths
         except OCRProcessingError:
             raise
         except Exception as exc:
             raise OCRProcessingError(f"PDF rendering failed: {exc}") from exc
         finally:
-            for resource in (bitmap, page, document):
-                close = getattr(resource, "close", None)
-                if close:
-                    close()
+            close = getattr(document, "close", None)
+            if close:
+                close()
 
     @staticmethod
     def _run_tesseract(file_path: str) -> tuple[str, float]:
