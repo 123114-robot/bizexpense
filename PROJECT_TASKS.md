@@ -40,8 +40,9 @@
 - [x] Phase 16: first-page PDF rendering for local Tesseract OCR
 - [x] Phase 17: average expense and tenant-scoped top-supplier dashboard insights
 - [x] Phase 18: bounded multi-page PDF rendering and combined local Tesseract OCR
+- [x] Phase 19: validated Vision field confidence and low-confidence review warnings
 - [x] Phase 8D: deeper security regression coverage for high-risk API boundaries
-- [ ] Provider-derived field confidence and representative invoice validation
+- [ ] Representative real-invoice dataset validation
 - [ ] Accounting-system export (dashboard analytics expanded in Phase 17)
 - [ ] Object storage, malware scanning and document retention policy
 - [ ] Browser E2E hardening (baseline accessibility improvements completed in Phase 15)

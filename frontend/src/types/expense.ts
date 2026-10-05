@@ -24,4 +24,5 @@ export type Dashboard = {
   category_breakdown: { category: string; total: string; expense_count: number }[]
   monthly_trend: { month: string; total: string }[]
 }
-export type OCRResult = { supplier_name: string; abn: string | null; invoice_number: string | null; invoice_date: string; due_date: string | null; subtotal: string; gst: string; total: string; currency: string; confidence: number; confirmed: boolean }
+export type OCRFieldConfidence = Partial<Record<'supplier_name' | 'abn' | 'invoice_number' | 'invoice_date' | 'due_date' | 'subtotal' | 'gst' | 'total' | 'currency', number>>
+export type OCRResult = { supplier_name: string; abn: string | null; invoice_number: string | null; invoice_date: string; due_date: string | null; subtotal: string; gst: string; total: string; currency: string; confidence: number; field_confidence?: OCRFieldConfidence | null; confirmed: boolean }

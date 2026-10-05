@@ -12,6 +12,20 @@ class DocumentRead(BaseModel):
     uploaded_at: datetime
 
 
+class OCRFieldConfidence(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    supplier_name: float | None = Field(default=None, ge=0, le=1)
+    abn: float | None = Field(default=None, ge=0, le=1)
+    invoice_number: float | None = Field(default=None, ge=0, le=1)
+    invoice_date: float | None = Field(default=None, ge=0, le=1)
+    due_date: float | None = Field(default=None, ge=0, le=1)
+    subtotal: float | None = Field(default=None, ge=0, le=1)
+    gst: float | None = Field(default=None, ge=0, le=1)
+    total: float | None = Field(default=None, ge=0, le=1)
+    currency: float | None = Field(default=None, ge=0, le=1)
+
+
 class OCRResult(BaseModel):
     supplier_name: str
     abn: str | None = None
@@ -23,6 +37,7 @@ class OCRResult(BaseModel):
     total: Decimal
     currency: str = "AUD"
     confidence: float = Field(ge=0, le=1)
+    field_confidence: OCRFieldConfidence | None = None
     confirmed: bool = False
 
     @field_validator("subtotal", "gst", "total")

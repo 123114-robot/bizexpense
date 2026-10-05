@@ -160,6 +160,11 @@ def test_vision_provider_extracts_strict_unconfirmed_invoice_data(tmp_path):
                                     "total": "38.50",
                                     "currency": "AUD",
                                     "confidence": 0.91,
+                                    "field_confidence": {
+                                        "supplier_name": 0.97,
+                                        "invoice_number": 0.72,
+                                        "total": 0.94,
+                                    },
                                 }
                             )
                         }
@@ -178,7 +183,34 @@ def test_vision_provider_extracts_strict_unconfirmed_invoice_data(tmp_path):
 
     assert result.supplier_name == "Woolworths"
     assert result.total == Decimal("38.50")
+    assert result.field_confidence is not None
+    assert result.field_confidence.invoice_number == 0.72
     assert result.confirmed is False
+
+
+def test_vision_provider_rejects_invalid_field_confidence(tmp_path):
+    invoice = tmp_path / "invoice.png"
+    invoice.write_bytes(b"\x89PNG\r\n\x1a\nimage")
+    response = {
+        "choices": [{"message": {"content": json.dumps({
+            "supplier_name": "Example",
+            "invoice_date": "2026-10-05",
+            "subtotal": "10.00",
+            "gst": "1.00",
+            "total": "11.00",
+            "currency": "AUD",
+            "confidence": 0.8,
+            "field_confidence": {"total": 1.2},
+        })}}]
+    }
+    client = httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=response))
+    )
+
+    with pytest.raises(OCRProcessingError, match="invalid invoice data"):
+        VisionOCRProvider("key", "https://vision.example/v1", "model", client).extract(
+            str(invoice)
+        )
 
 
 def test_vision_provider_rejects_invalid_accounting_values(tmp_path):
