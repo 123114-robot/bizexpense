@@ -241,9 +241,11 @@ class VisionOCRProvider(OCRProvider):
                             "text": (
                                 "Extract this invoice without guessing missing values. Return only JSON "
                                 "with supplier_name, abn, invoice_number, invoice_date, due_date, "
-                                "subtotal, gst, total, currency, and confidence. Dates must be YYYY-MM-DD, "
+                                "subtotal, gst, total, currency, confidence, and optional field_confidence. "
+                                "field_confidence may contain confidence values for each returned invoice "
+                                "field. Dates must be YYYY-MM-DD, "
                                 "money must be decimal numbers, currency must be a three-letter ISO code, "
-                                "confidence must be between 0 and 1, and nullable fields may be null."
+                                "all confidence values must be between 0 and 1, and nullable fields may be null."
                             ),
                         },
                     ],
